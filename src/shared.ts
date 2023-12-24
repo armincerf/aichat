@@ -183,4 +183,13 @@ export type Message = {
   seenByNpc: boolean;
 };
 
-export const yDocShape = { messages: [] as Message[] };
+export type State = {
+  isTyping?: boolean;
+  image?: string | null | undefined;
+  imageDescriptionLoading?: boolean;
+};
+
+export const yDocShape = {
+  messages: [] as Message[],
+  state: {} as State,
+};

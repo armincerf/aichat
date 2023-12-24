@@ -7,9 +7,13 @@ import type {
 import type { Doc as YDoc } from "yjs";
 import { onConnect } from "y-partykit";
 import { YPartyKitStorage } from "y-partykit/storage";
-import { yDocShape, type Message, RoomMap, type Npc } from "@/shared";
+import { yDocShape, type Message, RoomMap, type Npc, State } from "@/shared";
 import { syncedStore } from "@syncedstore/core";
-import { getChatCompletionResponse, AIMessage } from "./utils/openai";
+import {
+  getChatCompletionResponse,
+  AIMessage,
+  getImageResponse,
+} from "./utils/openai";
 
 const DEFAULT_NPC_MESSAGE = "...";
 const MISSING_OPEN_AI_API_KEY =
@@ -28,7 +32,9 @@ export default class SpatialChatServer implements PartyKitServer {
 
   async onConnect(ws: Connection) {
     return onConnect(ws, this.party, {
-      persist: true,
+      persist: {
+        mode: "snapshot",
+      },
       callback: {
         handler: (ydoc) => {
           try {
@@ -54,6 +60,14 @@ export default class SpatialChatServer implements PartyKitServer {
       const messages = ydoc.getArray("messages");
       return new Response(JSON.stringify(messages, null, 2));
     }
+    if (req.method === "POST") {
+      const body = (await req.json()) as {
+        type: "stop" | "askAi";
+      };
+      if (body.type === "stop") {
+        return new Response("Stopped", { status: 200 });
+      }
+    }
 
     return new Response("Unsupported method", { status: 400 });
   }
@@ -66,6 +80,54 @@ export default class SpatialChatServer implements PartyKitServer {
 
     // find the last message in the room
     const store = syncedStore(yDocShape, ydoc);
+    if (store.state.image && !store.state.imageDescriptionLoading) {
+      const image = store.state.image;
+      store.state.image = null;
+      store.state.imageDescriptionLoading = true;
+      // use gpt vision api to get description of image using messages as context
+      const transcript = store.messages
+        .map((message) => {
+          return {
+            role: message.isNpc ? "assistant" : "user",
+            content: message.text,
+            name: message.name,
+          } as AIMessage;
+        })
+        .slice(-100);
+      // create a response message with a placeholder text and send it to the client
+      const npc = chatRoom.npc;
+      const messages = store.messages;
+      messages.push({
+        userId: npc.userId,
+        name: npc.userId,
+        initials: npc.name,
+        isNpc: true,
+        text: DEFAULT_NPC_MESSAGE,
+        seenByNpc: true,
+      });
+
+      // get reference to the message we just sent to the client
+      const npcMessage = messages[messages.length - 1];
+      try {
+        await getImageResponse(image, {
+          env: this.party.env,
+          messages: transcript,
+          onStartCallback: () => {
+            npcMessage.text = "";
+          },
+          onTokenCallback: (token) => {
+            npcMessage.text += token;
+          },
+        });
+        store.state.isTyping = false;
+        npcMessage.seenByNpc = true;
+        store.state.imageDescriptionLoading = false;
+        return;
+      } catch (e) {
+        console.error("Error while executing OpenAI call", e);
+        throw e;
+      }
+    }
     const finalMessage = store.messages[store.messages.length - 1] as Message;
 
     const botCheck = chatRoom.npc.userId.includes("bot")
@@ -75,12 +137,13 @@ export default class SpatialChatServer implements PartyKitServer {
     // if it hasn't yet been handled and is a @bot question
     if (!finalMessage.seenByNpc && botCheck) {
       // time to generate a response from the room's NPC
-      await this.generateLLMResponse(chatRoom.npc, store.messages);
+      await this.generateLLMResponse(chatRoom.npc, store.messages, store.state);
     }
     finalMessage.seenByNpc = true;
   }
 
-  async generateLLMResponse(npc: Npc, messages: Message[]) {
+  async generateLLMResponse(npc: Npc, messages: Message[], state: State) {
+    if (state.imageDescriptionLoading) return;
     // transcript is the most recent 100 messages, in the form:
     // { role: "user" | "assistant", text: string }
     // It needs to be created from messages, which is an array of Message,
@@ -128,10 +191,12 @@ export default class SpatialChatServer implements PartyKitServer {
       messages: [prompt, ...transcript],
       onStartCallback: () => {
         npcMessage.text = "";
+        state.isTyping = true;
       },
       onTokenCallback: (token) => {
         npcMessage.text += token;
       },
     });
+    state.isTyping = false;
   }
 }
