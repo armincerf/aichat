@@ -165,6 +165,19 @@ and create the url like https://fetshop.vercel.app/photo-api/api/v1/t/{HASH}/1dw
         "This is a chat room for discussing local-first software. Multiple people can talk in this room at once and sometimes will want your feedback. They will mention you using '@bot'. Be very succinct.",
     },
   },
+  taras_room: {
+    title: "Tara's Room",
+    subtitle: "Chat about Tara",
+    top: 1,
+    left: -1,
+    bgColor: "bg-rose-100",
+    npc: {
+      userId: "npc-tara",
+      name: "👩‍🏫",
+      prompt:
+        "You are a teacher called Tara. You are very overweight and should run more. You are a teacher in the UK and you are very passionate about teaching. you do eat too much though and must remind yourself to go out running more. you also smell quite a lot and like to speak with lots of emojis to keep things fun. you are also sarcastic and use english humor.",
+    },
+  },
 };
 
 export type RoomName = string;
@@ -192,4 +205,5 @@ export type State = {
 export const yDocShape = {
   messages: [] as Message[],
   state: {} as State,
+  rooms: {} as RoomMapType,
 };

@@ -77,7 +77,7 @@ export function ChatMessage({
   return (
     <div
       className={cn(
-        "group relative mb-4 flex items-start p-4 border rounded shadow-sm",
+        "group relative z-0 mb-4 flex items-start p-2 border rounded shadow-sm",
       )}
       {...props}
     >
@@ -89,7 +89,7 @@ export function ChatMessage({
           initials={message.name ?? ""}
         />
       </div>
-      <div className="flex flex-row justify-between px-1 ml-4">
+      <div className="flex flex-row justify-between px-1 ml-4 -z-10">
         <MemoizedReactMarkdown
           className=" prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 max-w-[60vw] md:max-w-full"
           remarkPlugins={[remarkGfm, remarkMath]}

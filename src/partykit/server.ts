@@ -39,6 +39,7 @@ export default class SpatialChatServer implements PartyKitServer {
         handler: (ydoc) => {
           try {
             this.handleYDocChange(ydoc);
+            console.log(ydoc.getMap("rooms").toJSON());
           } catch (e) {
             console.error("Error in ydoc update handler", e);
           }
@@ -114,6 +115,7 @@ export default class SpatialChatServer implements PartyKitServer {
           messages: transcript,
           onStartCallback: () => {
             npcMessage.text = "";
+            store.state.isTyping = true;
           },
           onTokenCallback: (token) => {
             npcMessage.text += token;

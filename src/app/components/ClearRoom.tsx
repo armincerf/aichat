@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRoomContext } from "@/app/providers/room-context";
 import { useSyncedStore } from "@syncedstore/react";
 import { getYjsValue } from "@syncedstore/core";
-import * as Y from "yjs";
+import { type Array } from "yjs";
 import { type Message } from "@/shared";
 
 export default function ClearRoom() {
@@ -15,7 +15,7 @@ export default function ClearRoom() {
   const handleClearRoom = () => {
     if (!state) return;
     console.log("Clearing room");
-    const messages = getYjsValue(state.messages) as Y.Array<Message>;
+    const messages = getYjsValue(state.messages) as Array<Message>;
     messages.delete(0, messages.length);
     state.state.image = "";
     state.state.isTyping = false;

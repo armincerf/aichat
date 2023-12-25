@@ -1,16 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRoomContext } from "@/app/providers/room-context";
-import { useSyncedStore } from "@syncedstore/react";
-import { getYjsValue } from "@syncedstore/core";
-import * as Y from "yjs";
-import { type Message } from "@/shared";
 
 export default function AddRoom() {
   const [showModal, setShowConfirmation] = useState(false);
-  const { store } = useRoomContext();
-  const state = useSyncedStore(store);
 
   const handleAddRoom = () => {
     setShowConfirmation(false);

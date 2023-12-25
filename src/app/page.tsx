@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 
 import AnimatedRoomContainer from "./components/AnimatedRoomContainer";
 import Navigator from "./components/Navigator";
@@ -15,15 +15,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 import { RoomMap, type RoomName, type User } from "@/shared";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { ButtonScrollToBottom } from "./components/ChatPanel";
-
-// In units
-
-// PaneName is an emum of allowed pane numbers
-// PaneMap is a map of PaneName to { top: number, left: number }
-
-const generateRandomId = () =>
-  Date.now().toString(36) + Math.random().toString(36).substring(2);
+import { SiteHeader } from "./components/Header";
+import { cn } from "./components/utils";
 
 const makeInitials = (name: string) => {
   const words = name.split(" ");
@@ -78,68 +71,79 @@ export default function Page() {
   };
 
   const custom = { source: previousRoom, destination: currentRoom };
+  const scrollToBottom = () => {
+    console.log("scrolling to bottom");
+    const el = document.getElementById("chat-scroll-anchor");
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({
+          block: "start",
+          behavior: "smooth",
+        });
+      }, 100);
+    }
+  };
 
   return (
-    <main className="relative h-[100dvh] flex flex-col bg-gray-800">
-      {showSettings && (
-        <Settings
-          name={user?.name ?? null}
-          setName={(name) => setUser(makeUser(name))}
-          dismiss={() => setShowSettings(false)}
-        />
-      )}
-      <div
-        className={showSettings ? "pointer-events-none overscroll-none" : ""}
-      >
-        {!initialLoad && !user && (
-          <SettingsCTA
-            settingsOpen={showSettings}
-            showSettings={() => setShowSettings(true)}
+    <>
+      <SiteHeader />
+      <main className="relative flex flex-col pt-10">
+        {showSettings && (
+          <Settings
+            name={user?.name ?? null}
+            setName={(name) => setUser(makeUser(name))}
+            dismiss={() => setShowSettings(false)}
           />
         )}
-        <div className="absolute top-0 right-0 p-2 z-10">
-          <div onClick={() => setShowSettings(true)} className="cursor-pointer">
-            {user !== null ? (
-              <Avatar initials={user.initials} variant="highlight" />
-            ) : (
-              <Avatar initials="" variant="ghost" />
-            )}
-          </div>
-        </div>
-        <Navigator
-          currentRoom={currentRoom}
-          handleRoomChange={handleRoomChange}
-          disabled={isTransitioning}
-        />
-        <AnimatePresence
-          custom={custom}
-          onExitComplete={() => setIsTransitioning(false)}
+        <div
+          className={cn({
+            "flex flex-col items-center justify-center w-full": true,
+            "pointer-events-none overscroll-none": showSettings,
+          })}
         >
-          {
-            // Iterate over PaneMap getting the pane name and details object
-            Object.entries(RoomMap).map(([roomName, _]) => {
-              return (
-                currentRoom === roomName && (
-                  <AnimatedRoomContainer
-                    key={roomName}
-                    name={roomName as RoomName}
-                    custom={custom}
-                  >
+          {!initialLoad && !user && (
+            <SettingsCTA
+              settingsOpen={showSettings}
+              showSettings={() => setShowSettings(true)}
+            />
+          )}
+          <div className="fixed top-14 right-0 p-2 z-30">
+            <div
+              onClick={() => setShowSettings(true)}
+              className="cursor-pointer"
+            >
+              {user !== null ? (
+                <Avatar initials={user.initials} variant="highlight" />
+              ) : (
+                <Avatar initials="" variant="ghost" />
+              )}
+            </div>
+          </div>
+          <AnimatePresence
+            custom={custom}
+            onExitComplete={() => setIsTransitioning(false)}
+          >
+            {
+              // Iterate over PaneMap getting the pane name and details object
+              Object.entries(RoomMap).map(([roomName, _]) => {
+                return (
+                  currentRoom === roomName && (
                     <RoomContextProvider
+                      key={roomName}
                       name={roomName as RoomName}
                       currentUser={user}
                     >
                       <TooltipProvider>
-                        <Room />
+                        <Room scrollToBottom={scrollToBottom} />
                       </TooltipProvider>
                     </RoomContextProvider>
-                  </AnimatedRoomContainer>
-                )
-              );
-            })
-          }
-        </AnimatePresence>
-      </div>
-    </main>
+                  )
+                );
+              })
+            }
+          </AnimatePresence>
+        </div>
+      </main>
+    </>
   );
 }

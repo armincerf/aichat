@@ -3,23 +3,21 @@
 import * as React from "react";
 import { useInView } from "react-intersection-observer";
 
-export function useAtBottom(
-  messageElRef: React.RefObject<HTMLDivElement> | undefined,
-) {
+export function useAtBottom() {
   const [isAtBottom, setIsAtBottom] = React.useState(true);
-  const el = messageElRef?.current || document.body;
 
   React.useEffect(() => {
     const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const atBottom = scrollHeight - scrollTop - clientHeight <= clientHeight;
-
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
+      const atBottom =
+        scrollHeight - scrollTop - clientHeight <= clientHeight / 4;
       setIsAtBottom(atBottom);
     };
 
-    el.addEventListener("scroll", handleScroll);
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, [el]);
+    document.addEventListener("scroll", handleScroll);
+    return () => document.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return isAtBottom;
 }
@@ -27,13 +25,11 @@ export function useAtBottom(
 export function ChatScrollAnchor({
   trackVisibility,
   lastMessageLength,
-  messageElRef,
 }: {
   trackVisibility?: boolean;
   lastMessageLength?: number;
-  messageElRef?: React.RefObject<HTMLDivElement>;
 }) {
-  const isAtBottom = useAtBottom(messageElRef);
+  const isAtBottom = useAtBottom();
   const { ref, entry, inView } = useInView({
     trackVisibility,
     delay: 100,
@@ -41,13 +37,25 @@ export function ChatScrollAnchor({
   });
 
   React.useEffect(() => {
+    setTimeout(() => {
+      entry?.target.scrollIntoView({
+        block: "start",
+        behavior: "smooth",
+      });
+    }, 100);
+  }, [entry]);
+
+  React.useEffect(() => {
     console.log("lastMessageLength", lastMessageLength);
     if (isAtBottom && trackVisibility && !inView) {
       entry?.target.scrollIntoView({
         block: "start",
+        behavior: "smooth",
       });
     }
   }, [inView, entry, isAtBottom, trackVisibility, lastMessageLength]);
 
-  return <div ref={ref} className="h-px w-full" />;
+  return (
+    <div id="chat-scroll-anchor" ref={ref} className="h-px mt-14 w-full" />
+  );
 }

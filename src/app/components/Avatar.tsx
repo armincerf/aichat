@@ -18,7 +18,7 @@ export default function Avatar(props: {
   return (
     <div
       className={classNames(
-        "outline rounded-full flex justify-center items-center",
+        "outline rounded-full z-50 transform flex justify-center items-center",
         extraClasses[variant],
       )}
     >

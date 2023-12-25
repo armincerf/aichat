@@ -2,7 +2,6 @@ import * as React from "react";
 import { type UseChatHelpers } from "ai/react";
 import {
   IconRefresh,
-  IconStop,
   IconArrowElbow,
   IconPlus,
   IconArrowDown,
@@ -11,9 +10,7 @@ import Textarea from "react-textarea-autosize";
 import { cn } from "./utils";
 import { Button, ButtonProps, buttonVariants } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { useRouter } from "next/navigation";
 import { useAtBottom } from "./chat-scroll-anchor";
-import { Message } from "@/shared";
 import Avatar from "./Avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import imageCompression from "browser-image-compression";
@@ -22,34 +19,24 @@ import { FaCameraRetro } from "react-icons/fa";
 
 export function ButtonScrollToBottom({
   className,
-  messageElRef,
+  scrollToBottom,
   ...props
 }: ButtonProps & {
-  messageElRef: React.RefObject<HTMLDivElement> | undefined;
+  scrollToBottom: () => void;
 }) {
-  const isAtBottom = useAtBottom(messageElRef);
-
-  React.useEffect(() => {
-    messageElRef?.current?.scrollTo({
-      top: messageElRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messageElRef]);
+  const isAtBottom = useAtBottom();
 
   return (
     <Button
       variant="outline"
       size="icon"
       className={cn(
-        "absolute left-4 bottom-28 z-20 bg-background transition-opacity duration-300 sm:right-8",
+        "fixed left-4 bottom-28 z-20 bg-background transition-opacity duration-300 sm:right-8",
         className,
         isAtBottom ? "opacity-0" : "opacity-100",
       )}
       onClick={() => {
-        messageElRef?.current?.scrollTo({
-          top: messageElRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+        scrollToBottom();
       }}
       {...props}
     >
@@ -206,14 +193,14 @@ export function PromptForm({
       <div className="relative flex flex-col w-full px-8 overflow-hidden max-h-60 grow bg-background sm:rounded-md sm:border sm:px-12">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger className="absolute left-4 top-4">
-            <button
+            <div
               className={cn(
                 buttonVariants({ size: "sm", variant: "outline" }),
                 "h-8 w-8 rounded-full bg-background p-0 sm:left-4",
               )}
             >
               <Avatar initials={aiName} variant="small-npc" />
-            </button>
+            </div>
           </PopoverTrigger>
           <PopoverContent>
             <ul className="flex flex-col gap-2 p-2">
@@ -248,9 +235,9 @@ export function PromptForm({
           rows={1}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Send a message or click the AI icon to upload an image."
+          placeholder="Send a message or click the AI icon for more options."
           spellCheck={false}
-          className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
+          className="min-h-[60px] w-full resize-none bg-transparent px-8 py-[1.3rem] focus-within:outline-none sm:text-sm"
         />
         <div className="absolute right-0 top-4 sm:right-4">
           <Tooltip>
@@ -293,7 +280,7 @@ export function ChatPanel({
   return (
     <div className="fixed inset-x-0 bottom-0 w-screen bg-gradient-to-b from-muted/30 from-0% to-muted/30 to-50% animate-in duration-300 ease-in-out dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
       <div className="mx-auto sm:max-w-2xl sm:px-4">
-        <div className="px-4 py-2 space-y-4 border-t shadow-lg bg-background sm:rounded-t-xl sm:border md:py-4">
+        <div className="px-4  border-t shadow-lg bg-background sm:rounded-t-xl sm:border md:py-4">
           <PromptForm
             onSubmit={(value) => {
               append(value);

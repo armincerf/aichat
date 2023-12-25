@@ -35,7 +35,7 @@ export default function AnimatedRoomContainer(props: {
       custom={custom}
       transition={{ duration: 0.2 }}
     >
-      <div className={`relative w-full h-full ${bgColor}`}>{children}</div>
+      {children}
     </motion.div>
   );
 }

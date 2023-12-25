@@ -1,5 +1,4 @@
-import classNames from "classnames";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRoomContext } from "@/app/providers/room-context";
 import { RoomMap, Message } from "@/shared";
 import { useUsers, useSelf } from "y-presence";
@@ -9,7 +8,6 @@ import { useSyncedStore } from "@syncedstore/react";
 import { Y, getYjsValue } from "@syncedstore/core";
 import { ChatScrollAnchor } from "./chat-scroll-anchor";
 import { ChatMessage } from "./Messages";
-import { Separator } from "./ui/seperator";
 import {
   ButtonScrollToBottom,
   ChatPanel,
@@ -17,7 +15,11 @@ import {
 } from "./ChatPanel";
 import { uploadFiles } from "./utils";
 
-export default function Room() {
+export default function Room({
+  scrollToBottom,
+}: {
+  scrollToBottom: () => void;
+}) {
   const {
     provider,
     name,
@@ -26,7 +28,6 @@ export default function Room() {
   } = useRoomContext();
   const [messageInput, setMessageInput] = useState("");
   const store = useSyncedStore(globalStore);
-  const chatListRef = useRef<HTMLDivElement>(null);
 
   const handleDeleteMessage = (message: Message) => {
     if (!store) return;
@@ -63,10 +64,7 @@ export default function Room() {
 
     store.messages.push(newMessage);
     setMessageInput("");
-    chatListRef?.current?.scrollTo({
-      top: chatListRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollToBottom();
   };
   const handleImageUpload: ChatPanelProps["handleImageUpload"] = async (
     value,
@@ -103,8 +101,8 @@ export default function Room() {
   if (!room) return null;
 
   return (
-    <div className="h-full flex flex-col justify-start items-center">
-      <div className="absolute top-0 right-0 p-2 justify-end flex flex-row -space-x-2">
+    <>
+      <div className="fixed z-20 top-14 right-0 p-2 justify-end flex flex-row -space-x-2">
         {npc && <Avatar initials={npc.name} variant="npc" />}
         {Array.from(users.entries())
           .sort()
@@ -120,66 +118,49 @@ export default function Room() {
         <Avatar initials="" variant="ghost" />
       </div>
       <div className="p-4 flex flex-col gap-1 justify-start items-start">
-        <div className="flex flex-row gap-2">
-          <div className="prose">
-            <h1>{title}</h1>
-          </div>
-        </div>
-        {room?.subtitle && (
-          <h4 className="text-black/50 font-semibold text-lg w-2/3">
-            {room.subtitle}
-          </h4>
-        )}
-
-        {self?.name && self.name === "Alex" && <ClearRoom />}
+        {self?.name && self.name === "Alelx" && <ClearRoom />}
       </div>
 
       <div
         id="chat"
-        className="h-full relative max-h-full overflow-hidden sm:w-3/4 lg:max-w-screen-xl sm:px-4 flex flex-col gap-6 justify-between items-stretch"
+        className="h-full relative max-h-full overflow-y-scroll sm:w-3/4 lg:max-w-screen-xl sm:px-4 flex flex-col gap-6 justify-between items-stretch pb-12"
       >
-        <div
-          ref={chatListRef}
-          className="overflow-y-scroll pt-2 pb-24 relative"
-        >
-          {store ? (
-            <ul className="relative px-4">
-              {store.messages
-                .filter((message) => message.text !== "@bot")
-                .map((message: Message, index: number) => {
-                  const isMe = currentUserId === message.userId;
-                  return (
-                    <li key={index}>
-                      <ChatMessage
-                        canDelete={isMe || self?.name === "Alex"}
-                        onDelete={() => {
-                          handleDeleteMessage(message);
-                        }}
-                        message={{
-                          id: index.toString(),
-                          content: message.text,
-                          name: message.initials,
-                          role: message.isNpc ? "assistant" : "user",
-                        }}
-                      />
-                      <div className="grow-0 w-3"></div>
-                    </li>
-                  );
-                })}
-              <ChatScrollAnchor
-                messageElRef={chatListRef}
-                lastMessageLength={
-                  !store.messages.length
-                    ? 0
-                    : store.messages[store.messages.length - 1].text.length
-                }
-                trackVisibility={isLoading}
-              />
-            </ul>
-          ) : null}
-        </div>
+        {store ? (
+          <ul className="relative px-4">
+            {store.messages
+              .filter((message) => !message.text.includes("@bot"))
+              .map((message: Message, index: number) => {
+                const isMe = currentUserId === message.userId;
+                return (
+                  <li key={index}>
+                    <ChatMessage
+                      canDelete={isMe || self?.name === "Alex"}
+                      onDelete={() => {
+                        handleDeleteMessage(message);
+                      }}
+                      message={{
+                        id: index.toString(),
+                        content: message.text,
+                        name: message.initials,
+                        role: message.isNpc ? "assistant" : "user",
+                      }}
+                    />
+                    <div className="grow-0 w-3"></div>
+                  </li>
+                );
+              })}
+            <ChatScrollAnchor
+              lastMessageLength={
+                !store.messages.length
+                  ? 0
+                  : store.messages[store.messages.length - 1].text.length
+              }
+              trackVisibility={isLoading}
+            />
+          </ul>
+        ) : null}
         {store?.messages.length ? (
-          <ButtonScrollToBottom messageElRef={chatListRef} />
+          <ButtonScrollToBottom scrollToBottom={scrollToBottom} />
         ) : null}
         {self?.name && (
           <ChatPanel
@@ -193,12 +174,14 @@ export default function Room() {
             input={messageInput}
             setInput={setMessageInput}
             handleAskAi={() => {
-              handleSubmit("@bot");
+              handleSubmit(
+                "@bot answer the above but act like you've just been woken up and are quite annoyed at being disturbed",
+              );
             }}
             aiName={npc?.name ?? "AI"}
           />
         )}
       </div>
-    </div>
+    </>
   );
 }
