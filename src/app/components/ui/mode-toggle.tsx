@@ -1,8 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
-import { useTheme } from "next-themes";
 
 import { Button } from "./button";
 import {
@@ -12,45 +10,84 @@ import {
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 import { useRoomContext } from "@/app/providers/room-context";
-import { useSyncedStore } from "@syncedstore/react";
-import { RoomMap } from "@/shared";
 
-export function ModeToggle() {
-  const { setTheme } = useTheme();
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./dialog";
+import { Textarea } from "./textarea";
+import { SettingsIcon } from "lucide-react";
 
+export function DialogDemo({
+  open,
+  setOpen,
+}: {
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
+}) {
+  const { store } = useRoomContext();
+  const [text, setText] = React.useState(store?.state?.userPrompt || "");
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        onClick={(e) => {
-          e.preventDefault();
-          alert("Please do not click this button again.");
-        }}
-        asChild
-      >
-        <Button variant="ghost" className="w-9 px-0">
-          <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => {
-            // if (!store) return;
-            // const room = RoomMap;
-            // console.log((store.rooms = room));
-            return setTheme("light");
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!text || !store) return;
+            store.state.userPrompt = text;
+            setOpen?.(false);
           }}
         >
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DialogHeader>
+            <DialogTitle>Edit Room Prompt</DialogTitle>
+            <DialogDescription>
+              This prompt defines the personality of the AI in the room. Try
+              things like 'use an irish accent', or 'Remember that dad is bald'
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              id="room-prompt"
+              placeholder="Enter a prompt"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <DialogFooter>
+            <Button type="submit">Save changes</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function ModeToggle() {
+  const [showForm, setShowForm] = React.useState(false);
+
+  return (
+    <>
+      <DialogDemo
+        open={showForm}
+        setOpen={(open) => {
+          setShowForm(open);
+        }}
+      />
+      <Button
+        onClick={() => {
+          setShowForm(true);
+        }}
+        variant="ghost"
+        className="w-9 px-0"
+      >
+        <SettingsIcon />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+    </>
   );
 }

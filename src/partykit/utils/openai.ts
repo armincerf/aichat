@@ -6,6 +6,7 @@ export type AIMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 type Params = {
   env: Record<string, any>;
   messages: AIMessage[];
+  context?: string;
   onStartCallback: () => void;
   onTokenCallback: (token: string) => void;
 };
@@ -57,20 +58,24 @@ export async function getImageResponse(imageb64: string, opts: Params) {
   const response = await openai.chat.completions.create({
     model: "gpt-4-vision-preview",
     stream: true,
-    max_tokens: 1000,
+    max_tokens: 1300,
     messages: [
+      {
+        role: "assistant",
+        content: opts.context || "",
+      },
       {
         role: "user",
         content: [
-          {
-            type: "text",
-            text: "What's in this image? Use extremely casual british slang and emojis to describe it",
-          },
           {
             type: "image_url",
             image_url: {
               url: imageb64,
             },
+          },
+          {
+            type: "text",
+            text: "Describe, keep it interesting",
           },
         ],
       },

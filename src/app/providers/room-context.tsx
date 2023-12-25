@@ -39,10 +39,6 @@ export default function RoomContextProvider(props: {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [doc] = useState<Y.Doc>(new Doc());
-  /*const [provider, setProvider] = useState<YPartyKitProvider>(
-    new YPartyKitProvider("localhost:1999", name, doc, { connect: false })
-  );*/
-
   const provider = useMemo(() => {
     return new YPartyKitProvider(
       process.env.NEXT_PUBLIC_PARTYKIT_HOST!,
@@ -53,6 +49,8 @@ export default function RoomContextProvider(props: {
       },
     );
   }, [name, doc]);
+
+  console.log("provider", provider.doc.getArray("messages").toJSON());
 
   const [store] = useState(syncedStore(yDocShape, doc));
 

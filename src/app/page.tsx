@@ -42,14 +42,10 @@ const makeUser = (name: string) => {
 
 export default function Page() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const currentRoom = searchParams.get("room") ?? "clojure_room";
-  const setCurrentRoom = (room: RoomName) => {
-    router.push(`?room=${room}`);
-  };
 
-  const [previousRoom, setPreviousRoom] = useState(currentRoom);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [previousRoom] = useState(currentRoom);
+  const [, setIsTransitioning] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
@@ -63,12 +59,6 @@ export default function Page() {
     }
     setInitialLoad(false);
   }, []);
-
-  const handleRoomChange = (transitioningToRoom: RoomName) => {
-    setIsTransitioning(true);
-    setPreviousRoom(currentRoom);
-    setCurrentRoom(transitioningToRoom);
-  };
 
   const custom = { source: previousRoom, destination: currentRoom };
   const scrollToBottom = () => {
@@ -86,7 +76,6 @@ export default function Page() {
 
   return (
     <>
-      <SiteHeader />
       <main className="relative flex flex-col pt-10">
         {showSettings && (
           <Settings
@@ -125,7 +114,8 @@ export default function Page() {
           >
             {
               // Iterate over PaneMap getting the pane name and details object
-              Object.entries(RoomMap).map(([roomName, _]) => {
+              RoomMap.map((room) => {
+                const roomName = room.roomId;
                 return (
                   currentRoom === roomName && (
                     <RoomContextProvider
@@ -134,6 +124,7 @@ export default function Page() {
                       currentUser={user}
                     >
                       <TooltipProvider>
+                        <SiteHeader />
                         <Room scrollToBottom={scrollToBottom} />
                       </TooltipProvider>
                     </RoomContextProvider>

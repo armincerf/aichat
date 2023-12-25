@@ -46,7 +46,7 @@ export default function Room({
   const users = useUsers(provider!.awareness);
   const self = useSelf(provider!.awareness);
   // Get room details
-  const room = RoomMap[name];
+  const room = RoomMap.find((r) => r.roomId === name);
   const npc = room?.npc;
   const title = room?.title;
 
@@ -95,7 +95,6 @@ export default function Room({
   };
 
   const isLoading = store?.state.isTyping;
-  if (isLoading) console.log("loading");
 
   if (!provider) return null;
   if (!room) return null;
@@ -118,7 +117,7 @@ export default function Room({
         <Avatar initials="" variant="ghost" />
       </div>
       <div className="p-4 flex flex-col gap-1 justify-start items-start">
-        {self?.name && self.name === "Alelx" && <ClearRoom />}
+        {self?.name && self.name === "Alex" && <ClearRoom />}
       </div>
 
       <div

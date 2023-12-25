@@ -19,16 +19,16 @@ export function MainNav() {
         </span>
       </Link>
       <nav className="flex items-center gap-6 text-sm overflow-x-scroll">
-        {Object.keys(RoomMap).map((room) => (
+        {RoomMap.map(({ roomId, title }) => (
           <Link
-            key={room}
-            href={`?room=${room}`}
+            key={roomId}
+            href={`?room=${roomId}`}
             className={cn(
               "transition-colors hover:text-foreground/80",
-              pathname === room ? "text-foreground" : "text-foreground/60",
+              pathname === roomId ? "text-foreground" : "text-foreground/60",
             )}
           >
-            {room.replace(/_|room/g, " ").trim()}
+            {title.replace(/_|room/g, " ").trim()}
           </Link>
         ))}
       </nav>

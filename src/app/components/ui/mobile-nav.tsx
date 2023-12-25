@@ -27,9 +27,9 @@ export const docsConfig: DocsConfig = {
   sidebarNav: [
     {
       title: "Rooms",
-      items: Object.keys(RoomMap).map((room) => ({
-        title: RoomMap[room].title,
-        href: `?room=${room}`,
+      items: RoomMap.map((room) => ({
+        title: room.title,
+        href: `?room=${room.roomId}`,
         items: [],
       })),
     },

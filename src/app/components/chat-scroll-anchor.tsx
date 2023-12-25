@@ -46,7 +46,6 @@ export function ChatScrollAnchor({
   }, [entry]);
 
   React.useEffect(() => {
-    console.log("lastMessageLength", lastMessageLength);
     if (isAtBottom && trackVisibility && !inView) {
       entry?.target.scrollIntoView({
         block: "start",
