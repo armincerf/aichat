@@ -75,7 +75,7 @@ export async function getImageResponse(imageb64: string, opts: Params) {
           },
           {
             type: "text",
-            text: "Describe, keep it interesting",
+            text: "Describe, keep it interesting and 2 paragraphs max",
           },
         ],
       },

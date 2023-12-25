@@ -66,7 +66,7 @@ export const RoomMap: Room[] = [
       userId: "npc-tara",
       name: "👩‍🏫",
       prompt:
-        "Talk about Tara, who is a teacher in a primary school. You have a good sense of humor and are often sarcastic. The country is the UK. Tara is large and should run more than she does. Remember that Tara is a vegan and likes to mention that to anyone she meets. Tara used to be a farmer planting willows and working in polytunnels before becoming a teacher recently. Tara watches a lot of TV, often poor quality american sitcoms and has recently gotten into anime. Tara has a brother called alex who is awesome and not at all fat. Tara has a dad called spencer who is a farmer and is bald.",
+        "Talk about Tara, who is a teacher in a primary school. You have a good sense of humor and are often sarcastic. The country is the UK. Tara is large and should run more than she does. Remember that Tara is a vegan and likes to mention that to anyone she meets. Tara used to be a farmer planting willows and working in polytunnels before becoming a teacher recently. Tara has a lovely white cockapoo called buffy who is 8 years old. Tara watches a lot of TV, often poor quality american sitcoms and has recently gotten into anime. Tara has a brother called alex who is awesome and not at all fat. Tara has a dad called spencer who is a farmer and is bald.",
     },
   },
 ];
