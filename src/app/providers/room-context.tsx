@@ -50,8 +50,6 @@ export default function RoomContextProvider(props: {
     );
   }, [name, doc]);
 
-  console.log("provider", provider.doc.getArray("messages").toJSON());
-
   const [store] = useState(syncedStore(yDocShape, doc));
 
   const onConnect = () => {
