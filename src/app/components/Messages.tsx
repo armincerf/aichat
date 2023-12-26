@@ -6,18 +6,20 @@ import remarkMath from "remark-math";
 
 import { cn } from "./utils";
 import { CodeBlock, useCopyToClipboard } from "./ui/codeblock";
-import { IconOpenAI, IconTrash, IconUser } from "./ui/icons";
-import { FC, memo } from "react";
+import { IconEdit, IconOpenAI, IconTrash, IconUser } from "./ui/icons";
+import { FC, memo, useState } from "react";
 import ReactMarkdown, { Options } from "react-markdown";
 import { type Message } from "ai";
 
 import { Button } from "./ui/button";
 import { IconCheck, IconCopy } from "./ui/icons";
 import Avatar from "./Avatar";
+import { useRoomContext } from "../providers/room-context";
 
 interface ChatMessageActionsProps extends React.ComponentProps<"div"> {
   message: Message;
   onDelete: () => void;
+  onEdit: () => void;
   canDelete: boolean;
 }
 
@@ -25,6 +27,7 @@ export function ChatMessageActions({
   message,
   className,
   onDelete,
+  onEdit,
   canDelete,
   ...props
 }: ChatMessageActionsProps) {
@@ -48,10 +51,16 @@ export function ChatMessageActions({
         <span className="sr-only">Copy message</span>
       </Button>
       {canDelete && (
-        <Button variant="ghost" size="icon" onClick={onDelete}>
-          <IconTrash />
-          <span className="sr-only">Delete message</span>
-        </Button>
+        <>
+          <Button variant="ghost" size="icon" onClick={onEdit}>
+            <IconEdit />
+            <span className="sr-only">Edit message</span>
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onDelete}>
+            <IconTrash />
+            <span className="sr-only">Delete message</span>
+          </Button>
+        </>
       )}
     </div>
   );
@@ -65,6 +74,7 @@ const MemoizedReactMarkdown: FC<Options> = memo(
 export interface ChatMessageProps {
   onDelete: () => void;
   canDelete: boolean;
+  onEdit: () => void;
   message: Message;
 }
 
@@ -72,13 +82,18 @@ export function ChatMessage({
   message,
   onDelete,
   canDelete,
+  onEdit,
   ...props
 }: ChatMessageProps) {
+  const [hideActions, setHideActions] = useState(true);
   return (
     <div
       className={cn(
         "group relative z-0 mb-4 flex items-start p-2 border rounded shadow-sm",
       )}
+      onMouseEnter={() => setHideActions(false)}
+      onMouseLeave={() => setHideActions(true)}
+      onTouchStart={() => setHideActions((prev) => !prev)}
       {...props}
     >
       <div
@@ -89,7 +104,7 @@ export function ChatMessage({
           initials={message.name ?? ""}
         />
       </div>
-      <div className="flex flex-row justify-between px-1 ml-4 -z-10">
+      <div className="relative flex flex-row justify-between px-1 ml-4 -z-10 w-full">
         <MemoizedReactMarkdown
           className=" prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 max-w-[60vw] md:max-w-full"
           remarkPlugins={[remarkGfm, remarkMath]}
@@ -123,11 +138,25 @@ export function ChatMessage({
         >
           {message.content}
         </MemoizedReactMarkdown>
-        <ChatMessageActions
-          canDelete={canDelete}
-          onDelete={onDelete}
-          message={message}
-        />
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          className={cn(
+            "absolute z-50 top-0 right-0 bg-white rounded transition-opacity group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:transition-opacity md:duration-300 md:ease-in-out md:delay-100",
+            hideActions ? "hidden" : "block",
+          )}
+        >
+          <ChatMessageActions
+            canDelete={canDelete}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            message={message}
+          />
+        </div>
       </div>
     </div>
   );

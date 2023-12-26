@@ -14,6 +14,75 @@ import {
   type ChatPanelProps,
 } from "./ChatPanel";
 import { uploadFiles } from "./utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Textarea } from "./ui/textarea";
+import { Button } from "./ui/button";
+
+function DialogEdit({
+  open,
+  setOpen,
+  message,
+}: {
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
+  message: Message;
+}) {
+  const { store } = useRoomContext();
+  const [text, setText] = useState(message.text || "");
+  function handleEditMessage(newText: string) {
+    if (!store) return;
+    const messages = getYjsValue(store.messages) as Y.Array<Y.Map<Message>>;
+    if (!messages) return;
+    const index = messages.toArray().findIndex((m) => {
+      const mes = m.toJSON() as Message;
+      return mes.text === message.text && mes.userId === message.userId;
+    });
+    if (index === -1) return;
+    // @ts-ignore
+    messages.get(index).set("text", newText);
+  }
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!text) return;
+            handleEditMessage(text);
+            setOpen?.(false);
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit Room Prompt</DialogTitle>
+            <DialogDescription>
+              This prompt defines the personality of the AI in the room. Try
+              things like 'use an irish accent', or 'Remember that dad is bald'
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              id="room-prompt"
+              placeholder="Enter a prompt"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <DialogFooter>
+            <Button type="submit">Save changes</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function Room({
   scrollToBottom,
@@ -95,12 +164,23 @@ export default function Room({
   };
 
   const isLoading = store?.state.isTyping;
+  const [showEdit, setShowEdit] = useState(false);
+  const [messageToEdit, setMessageToEdit] = useState<Message | null>(null);
 
   if (!provider) return null;
   if (!room) return null;
 
   return (
     <>
+      {messageToEdit && (
+        <DialogEdit
+          open={showEdit}
+          setOpen={(open) => {
+            setShowEdit(open);
+          }}
+          message={messageToEdit}
+        />
+      )}
       <div className="fixed z-20 top-14 right-0 p-2 justify-end flex flex-row -space-x-2">
         {npc && <Avatar initials={npc.name} variant="npc" />}
         {Array.from(users.entries())
@@ -127,13 +207,21 @@ export default function Room({
         {store ? (
           <ul className="relative px-4">
             {store.messages
-              .filter((message) => !message.text.includes("@bot"))
+              .filter(
+                (message) =>
+                  typeof message.text === "string" &&
+                  !message.text.includes("@bot"),
+              )
               .map((message: Message, index: number) => {
                 const isMe = currentUserId === message.userId;
                 return (
                   <li key={index}>
                     <ChatMessage
                       canDelete={isMe || self?.name === "Alex"}
+                      onEdit={() => {
+                        setMessageToEdit(message);
+                        setShowEdit(true);
+                      }}
                       onDelete={() => {
                         handleDeleteMessage(message);
                       }}
