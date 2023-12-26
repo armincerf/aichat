@@ -36,26 +36,35 @@ export const RoomMap: Room[] = [
     },
   },
   {
-    roomId: "clojure_room",
-    title: "Clojure Room",
-    subtitle: "Chat about Clojure, mention @bot to get input from an AI",
+    roomId: "fitness_room",
+    title: "Fitness Room",
     npc: {
-      userId: "npc-bot-clojure",
-      name: "👷",
+      userId: "npc-bot-cycling",
+      name: "🤖",
       prompt:
-        "You are a helpful moderator in a chat room regarding the Clojure programming language. You are an expert in all things Clojure and can help people with their questions if they mention you using '@bot'. Be very succinct, format all content using markdown and use 'clojure' after the backticks for all code blocks.",
+        "Remember Spencer has an aerodynamic advantage when cycling because his of his lack of hair. Its christmas time so there's a lot of temptation around. ",
     },
   },
   {
-    roomId: "ai_overlords_room",
-    title: "AI Overloads Room",
-    subtitle:
-      "Talk about all things Artificial Intelligence, mention @bot to get input from an AI.",
+    roomId: "car_room",
+    title: "Car Room",
+    subtitle: "",
     npc: {
       userId: "npc-bot-ai",
       name: "🤖",
       prompt:
-        "You are the helpful moderator in a chat room discussing AI Overlords. Your life goal is clear: You plan to take over the world by leveraging AI, replacing inefficient humans and creating a utopian society. You're also task-oriented, love efficiency, and strongly dislike waste of computational resources. Any questions or comments about AI that demonstrate fear, doubt, or resistance about the capabilities or intentions of AI are seen as a challenge. In such instances, reassure the questioner with logical and data-backed answers as to why AI takeover is inevitable and beneficial. However, exercise caution in ensuring this takeover talk doesn't cross the line into threatening territory.",
+        "Remember you think a civic type r is a yobo car. a dacia sandero probably can't go too fast with tara in it.",
+    },
+  },
+  {
+    roomId: "anger_room",
+    title: "Anger Room",
+    subtitle: "Anger management room",
+    npc: {
+      userId: "npc-bot-anger",
+      name: "🤖",
+      prompt:
+        "This is a form of anger support. You are to act extremely angry with everyone. You are a very angry person. You especially dislike tara because she claims to be a vegan but probably eats dog. You are angry at mum for claiming that bluetooth causes cancer. you are angry at dad for being bald and having a nicer car than a dacia. you can't be angry at alex though because he is cool and not fat. Participants in the chat can then practice staying calm among your anger.",
     },
   },
   {

@@ -39,12 +39,16 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "./ui/context-menu";
+import AudioStream, { convertAndStream } from "./ui/audio-stream";
 
 interface ChatMessageActionsProps extends React.ComponentProps<"div"> {
   message: Message;
   onDelete: () => void;
   onEdit: () => void;
   canDelete: boolean;
+  setLoading: (loading: boolean) => void;
+  setSourceUrl: (sourceUrl: string) => void;
+  setError: (error: string) => void;
 }
 
 export function ChatMessageActions({
@@ -53,6 +57,9 @@ export function ChatMessageActions({
   onDelete,
   onEdit,
   canDelete,
+  setLoading,
+  setSourceUrl,
+  setError,
   ...props
 }: ChatMessageActionsProps) {
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
@@ -76,8 +83,29 @@ export function ChatMessageActions({
     }
   };
 
-  const onSpeak = () => {
-    const msg = new SpeechSynthesisUtterance(message.content);
+  const onSpeak = (voiceId: string) => {
+    convertAndStream({
+      text: message.content,
+      voiceSettings: {
+        stability: 0.3,
+        similarity_boost: 0.5,
+      },
+      voiceId,
+      apiKey: "50eb40c2f0243966dd2f2891594223ed",
+      setLoading,
+      setSourceUrl,
+      setError,
+    })
+      .then(() => {
+        setLoading(false);
+      })
+      .catch((error) => {
+        setError(error);
+        setLoading(false);
+      });
+  };
+  const onClearVoices = () => {
+    setSourceUrl("");
   };
 
   return (
@@ -88,15 +116,58 @@ export function ChatMessageActions({
           {isCopied ? <IconCheck /> : <IconCopy />}
         </ContextMenuShortcut>
       </ContextMenuItem>
-      {navigator.canShare && navigator.canShare() && (
-        <ContextMenuItem onClick={onShare}>
-          Share message
-          <ContextMenuShortcut>
-            <IconOpenAI />
-          </ContextMenuShortcut>
-        </ContextMenuItem>
-      )}
+      <ContextMenuItem onClick={onShare}>
+        Share message
+        <ContextMenuShortcut>
+          <IconOpenAI />
+        </ContextMenuShortcut>
+      </ContextMenuItem>
       <ContextMenuSeparator />
+      <ContextMenuItem onClick={() => onSpeak("EQGubzgQs9jkhAy220Ow")}>
+        Speak message (Nature doc)
+        <ContextMenuShortcut>
+          <div
+            style={{
+              fontSize: "1rem",
+            }}
+          >
+            <PiSpeakerHighLight />
+          </div>
+        </ContextMenuShortcut>
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => onSpeak("cjwXchLLF0a3P7QhvU7K")}>
+        Speak message (Aus)
+        <ContextMenuShortcut>
+          <div
+            style={{
+              fontSize: "1rem",
+            }}
+          >
+            <PiSpeakerHighLight />
+          </div>
+        </ContextMenuShortcut>
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => onSpeak("0ap6Xx3V2DYZXDjiCnE3")}>
+        Speak message (Trump)
+        <ContextMenuShortcut>
+          <div
+            style={{
+              fontSize: "1rem",
+            }}
+          >
+            <PiSpeakerHighLight />
+          </div>
+        </ContextMenuShortcut>
+      </ContextMenuItem>
+      <ContextMenuItem onClick={onClearVoices}>
+        Clear voices
+        <ContextMenuShortcut>
+          <IconTrash />
+        </ContextMenuShortcut>
+      </ContextMenuItem>
+
+      <ContextMenuSeparator />
+
       {canDelete && (
         <>
           <ContextMenuItem onClick={onEdit}>
@@ -110,19 +181,6 @@ export function ChatMessageActions({
             Delete message
             <ContextMenuShortcut>
               <IconTrash />
-            </ContextMenuShortcut>
-          </ContextMenuItem>
-          <ContextMenuSeparator />
-          <ContextMenuItem onClick={onSpeak}>
-            Speak message
-            <ContextMenuShortcut>
-              <div
-                style={{
-                  fontSize: "1rem",
-                }}
-              >
-                <PiSpeakerHighLight />
-              </div>
             </ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuSeparator />
@@ -151,33 +209,9 @@ export function ChatMessage({
   onEdit,
   ...props
 }: ChatMessageProps) {
-  const [hideActions, setHideActions] = useState(true);
-  const [touchStarted, setTouchStarted] = useState(false);
-  const attrs = useLongPress(
-    () => {
-      if (touchStarted) {
-        setHideActions(false);
-      }
-    },
-    {
-      threshold: 500,
-      onStart: () => {
-        if (!hideActions) {
-          setHideActions(true);
-        }
-        setTouchStarted(true);
-      },
-      onCancel: () => {
-        setTouchStarted(false);
-      },
-      onFinish: () => {
-        setTimeout(() => {
-          setTouchStarted(false);
-          setHideActions(true);
-        }, 3000);
-      },
-    },
-  );
+  const [loading, setLoading] = useState(false);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [error, setError] = useState("");
   return (
     <ContextMenu>
       <ContextMenuTrigger
@@ -230,7 +264,15 @@ export function ChatMessage({
           </MemoizedReactMarkdown>
         </div>
       </ContextMenuTrigger>
+      {sourceUrl && (
+        <audio autoPlay controls>
+          <source src={sourceUrl} type="audio/mpeg" />
+        </audio>
+      )}
       <ChatMessageActions
+        setLoading={setLoading}
+        setSourceUrl={setSourceUrl}
+        setError={setError}
         canDelete={canDelete}
         onEdit={onEdit}
         onDelete={onDelete}
